@@ -1,0 +1,263 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║   ~/.aliases — tarikul3639@kali                             ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+# ══════════════════════════════════════════════════════════════════
+# CORE NAVIGATION
+# ══════════════════════════════════════════════════════════════════
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# ── eza (modern ls) ───────────────────────────────────────────────
+if command -v eza &>/dev/null; then
+  alias ls='eza --icons --group-directories-first --color=always'
+  alias ll='eza --icons --long --group-directories-first --color=always --git'
+  alias la='eza --icons --long --all --group-directories-first --color=always --git'
+  alias lt='eza --icons --tree --level=2 --group-directories-first --color=always'
+  alias ltt='eza --icons --tree --level=3 --group-directories-first --color=always'
+  alias ld='eza --icons --only-dirs --color=always'
+else
+  alias ls='ls --color=auto --group-directories-first'
+  alias ll='ls -lhF --color=auto --group-directories-first'
+  alias la='ls -lahF --color=auto --group-directories-first'
+fi
+
+# ── bat (modern cat) ──────────────────────────────────────────────
+command -v bat &>/dev/null && alias cat='bat --paging=never'
+
+# ── ripgrep ───────────────────────────────────────────────────────
+command -v rg &>/dev/null && alias grep='rg'
+
+# ── fd ────────────────────────────────────────────────────────────
+command -v fd &>/dev/null && alias find='fd'
+
+# ══════════════════════════════════════════════════════════════════
+# GIT
+# ══════════════════════════════════════════════════════════════════
+
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gaa='git add --all'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend'
+alias gcan='git commit --amend --no-edit'
+alias gp='git push'
+alias gpf='git push --force-with-lease'
+alias gpl='git pull'
+alias gplr='git pull --rebase'
+alias gf='git fetch'
+alias gfa='git fetch --all'
+alias gco='git checkout'
+alias gcob='git checkout -b'
+alias gbd='git branch -d'
+alias gbD='git branch -D'
+alias gbl='git branch -a'
+alias gm='git merge'
+alias grb='git rebase'
+alias grbi='git rebase -i'
+alias gst='git stash'
+alias gstp='git stash pop'
+alias gstl='git stash list'
+alias gl='git log --oneline --graph --decorate --all'
+alias gll='git log --graph --pretty=format:"%Cred%h%Creset ─ %C(bold blue)%an%Creset %Cgreen(%ar)%Creset %s %C(yellow)%d%Creset" --abbrev-commit'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias grs='git restore'
+alias grss='git restore --staged'
+alias gclone='git clone'
+alias ginit='git init'
+alias gtag='git tag'
+alias grem='git remote -v'
+alias gwip='git add -A && git commit -m "wip: work in progress"'
+
+# ══════════════════════════════════════════════════════════════════
+# SYSTEM
+# ══════════════════════════════════════════════════════════════════
+
+alias update='sudo apt update'
+alias upgrade='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
+alias install='sudo apt install'
+alias remove='sudo apt remove'
+alias purge='sudo apt purge'
+alias search='apt search'
+alias cls='clear'
+alias clr='clear'
+alias q='exit'
+alias reload='exec zsh'
+alias zshrc='$EDITOR ~/.zshrc'
+alias aliases='$EDITOR ~/.aliases'
+alias functions='$EDITOR ~/.functions'
+alias starship-edit='$EDITOR ~/.config/starship.toml'
+alias hosts='sudo $EDITOR /etc/hosts'
+alias path='echo -e ${PATH//:/\\n}'
+alias sizeof='du -sh'
+alias top='btop 2>/dev/null || htop 2>/dev/null || top'
+alias df='df -h'
+alias free='free -h'
+alias ps='ps auxf'
+alias psg='ps aux | grep'
+
+# ══════════════════════════════════════════════════════════════════
+# NETWORK / SECURITY
+# ══════════════════════════════════════════════════════════════════
+
+alias myip='curl -s https://api.ipify.org && echo'
+alias myip6='curl -s https://api6.ipify.org && echo'
+alias localip='hostname -I | awk "{print \$1}"'
+alias ports='ss -tulnp'
+alias listening='ss -tlnp'
+alias ping='ping -c 5'
+alias fping='ping -f'
+alias tracert='traceroute'
+alias wget='wget -c'
+alias headers='curl -I'
+alias ipinfo='curl -s ipinfo.io | bat -l json'
+alias iplookup='curl -s https://ipapi.co/'
+
+# ══════════════════════════════════════════════════════════════════
+# NODE / NPM / PNPM / BUN
+# ══════════════════════════════════════════════════════════════════
+
+alias ni='npm install'
+alias nid='npm install --save-dev'
+alias nig='npm install -g'
+alias nr='npm run'
+alias nrd='npm run dev'
+alias nrb='npm run build'
+alias nrs='npm run start'
+alias nrl='npm run lint'
+alias nrt='npm run test'
+alias nrc='npm run clean'
+alias nrw='npm run watch'
+alias nls='npm list'
+alias nout='npm outdated'
+alias nup='npm update'
+alias nci='npm ci'
+
+alias pi='pnpm install'
+alias pid='pnpm install -D'
+alias pig='pnpm add -g'
+alias pr='pnpm run'
+alias prd='pnpm run dev'
+alias prb='pnpm run build'
+alias prs='pnpm run start'
+alias prl='pnpm run lint'
+alias prt='pnpm run test'
+alias pui='pnpm update -i'
+
+alias bi='bun install'
+alias br='bun run'
+alias brd='bun run dev'
+alias brb='bun run build'
+alias brs='bun run start'
+
+# ══════════════════════════════════════════════════════════════════
+# DOCKER
+# ══════════════════════════════════════════════════════════════════
+
+alias d='docker'
+alias dc='docker compose'
+alias dcu='docker compose up'
+alias dcud='docker compose up -d'
+alias dcd='docker compose down'
+alias dcr='docker compose restart'
+alias dcl='docker compose logs -f'
+alias dcps='docker compose ps'
+alias dcb='docker compose build'
+alias dps='docker ps -a'
+alias di='docker images'
+alias dex='docker exec -it'
+alias drm='docker rm'
+alias drmi='docker rmi'
+alias dvol='docker volume ls'
+alias dnet='docker network ls'
+alias dlogs='docker logs -f'
+alias docker-clean='docker system prune -af --volumes'
+alias docker-stop-all='docker stop $(docker ps -q) 2>/dev/null || echo "No containers running"'
+alias docker-rm-all='docker rm $(docker ps -aq) 2>/dev/null || echo "No containers to remove"'
+alias docker-rmi-all='docker rmi $(docker images -q) 2>/dev/null || echo "No images to remove"'
+
+# ══════════════════════════════════════════════════════════════════
+# KUBERNETES
+# ══════════════════════════════════════════════════════════════════
+
+alias k='kubectl'
+alias kg='kubectl get'
+alias kd='kubectl describe'
+alias ka='kubectl apply -f'
+alias kdel='kubectl delete'
+alias kl='kubectl logs -f'
+alias kex='kubectl exec -it'
+alias kns='kubectl config set-context --current --namespace'
+alias kctx='kubectl config use-context'
+alias kget='kubectl get all'
+
+# ══════════════════════════════════════════════════════════════════
+# EDITORS
+# ══════════════════════════════════════════════════════════════════
+
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'
+alias nano='nvim'
+alias e='$EDITOR'
+
+# ══════════════════════════════════════════════════════════════════
+# PYTHON
+# ══════════════════════════════════════════════════════════════════
+
+alias py='python3'
+alias python='python3'
+alias pip='pip3'
+alias venv='python3 -m venv .venv'
+alias activate='source .venv/bin/activate'
+alias deactivate='deactivate'
+alias pyfmt='black . && isort .'
+
+# ══════════════════════════════════════════════════════════════════
+# UTILITIES
+# ══════════════════════════════════════════════════════════════════
+
+alias mkdirp='mkdir -p'
+alias copy='xclip -selection clipboard'
+alias paste='xclip -selection clipboard -o'
+alias jsonp='python3 -m json.tool'
+alias urlencode='python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))"'
+alias urldecode='python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))"'
+alias b64enc='base64'
+alias b64dec='base64 -d'
+alias sha256='sha256sum'
+alias md5='md5sum'
+alias timestamp='date +%s'
+alias datetime='date "+%Y-%m-%d %H:%M:%S"'
+alias week='date +%V'
+alias timer='time'
+alias serve='python3 -m http.server'
+alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
+alias cheat='curl cheat.sh/'
+alias wtf='wtfutil 2>/dev/null || echo "wtfutil not installed"'
+alias matrix='cmatrix -b -C green 2>/dev/null || echo "cmatrix not installed"'
+
+# ── NestJS shorthand ──────────────────────────────────────────────
+alias nest='npx @nestjs/cli'
+alias ng='nest generate'
+alias ngm='nest generate module'
+alias ngc='nest generate controller'
+alias ngs='nest generate service'
+alias ngd='nest generate dto'
+alias ngi='nest generate interface'
+alias ngp='nest generate pipe'
+alias nggrd='nest generate guard'
+alias ngf='nest generate filter'
+
+# ── Next.js shorthand ─────────────────────────────────────────────
+alias nextdev='next dev'
+alias nextbuild='next build'
+alias nextstart='next start'
+alias nextlint='next lint'

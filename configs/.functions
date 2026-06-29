@@ -1,0 +1,349 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║   ~/.functions — tarikul3639@kali                           ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+# ══════════════════════════════════════════════════════════════════
+# NAVIGATION
+# ══════════════════════════════════════════════════════════════════
+
+# mkcd: Create a directory and cd into it
+mkcd() {
+  [[ -z "$1" ]] && { echo "Usage: mkcd <dir>"; return 1; }
+  mkdir -p "$@" && cd "$_"
+}
+
+# take: Create dir, cd into it (alias-friendly)
+take() {
+  mkcd "$@"
+}
+
+# up: Go up N directories
+up() {
+  local n="${1:-1}"
+  local path=""
+  for ((i=0; i<n; i++)); do path="../$path"; done
+  cd "$path" || return 1
+}
+
+# cdl: cd and list
+cdl() {
+  cd "$1" && ls
+}
+
+# ══════════════════════════════════════════════════════════════════
+# FILE OPERATIONS
+# ══════════════════════════════════════════════════════════════════
+
+# backup: Create a timestamped backup of a file
+backup() {
+  [[ -z "$1" ]] && { echo "Usage: backup <file>"; return 1; }
+  local src="$1"
+  [[ ! -e "$src" ]] && { echo "Error: '$src' not found"; return 1; }
+  local dst="${src}.bak.$(date +%Y%m%d_%H%M%S)"
+  cp -r "$src" "$dst" && echo "✓ Backup created: $dst"
+}
+
+# extract: Universal archive extractor
+extract() {
+  [[ -z "$1" ]] && { echo "Usage: extract <archive>"; return 1; }
+  if [[ -f "$1" ]]; then
+    case "$1" in
+      *.tar.bz2)   tar xjf "$1"    ;;
+      *.tar.gz)    tar xzf "$1"    ;;
+      *.tar.xz)    tar xJf "$1"    ;;
+      *.tar.zst)   tar --zstd -xf "$1" ;;
+      *.bz2)       bunzip2 "$1"    ;;
+      *.gz)        gunzip "$1"     ;;
+      *.tar)       tar xf "$1"     ;;
+      *.tbz2)      tar xjf "$1"    ;;
+      *.tgz)       tar xzf "$1"    ;;
+      *.zip)       unzip "$1"      ;;
+      *.Z)         uncompress "$1" ;;
+      *.7z)        7z x "$1"       ;;
+      *.rar)       unrar x "$1"    ;;
+      *.xz)        xz --decompress "$1" ;;
+      *.zst)       zstd --decompress "$1" ;;
+      *)           echo "Error: '$1' — unknown archive format" ;;
+    esac
+  else
+    echo "Error: '$1' is not a valid file"
+  fi
+}
+
+# mkarchive: Create an archive
+mkarchive() {
+  [[ $# -lt 2 ]] && { echo "Usage: mkarchive <archive.tar.gz> <files...>"; return 1; }
+  local output="$1"
+  shift
+  case "$output" in
+    *.tar.gz|*.tgz) tar czf "$output" "$@" ;;
+    *.tar.bz2)       tar cjf "$output" "$@" ;;
+    *.tar.xz)        tar cJf "$output" "$@" ;;
+    *.zip)           zip -r "$output" "$@"  ;;
+    *.7z)            7z a "$output" "$@"    ;;
+    *)               echo "Unknown format: $output" ;;
+  esac && echo "✓ Created: $output"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# NETWORK
+# ══════════════════════════════════════════════════════════════════
+
+# findport: Show what's running on a port
+findport() {
+  [[ -z "$1" ]] && { echo "Usage: findport <port>"; return 1; }
+  echo "Processes on port $1:"
+  ss -tlnp "sport = :$1" 2>/dev/null || lsof -i ":$1" 2>/dev/null || \
+    echo "Neither ss nor lsof found anything (try with sudo)"
+}
+
+# killport: Kill process running on a port
+killport() {
+  [[ -z "$1" ]] && { echo "Usage: killport <port>"; return 1; }
+  local pid
+  pid=$(lsof -ti ":$1" 2>/dev/null)
+  if [[ -n "$pid" ]]; then
+    echo "Killing PID(s): $pid on port $1"
+    echo "$pid" | xargs kill -9
+    echo "✓ Done"
+  else
+    echo "No process found on port $1"
+  fi
+}
+
+# serve: Start a quick HTTP server
+serve() {
+  local port="${1:-8080}"
+  local dir="${2:-.}"
+  echo "Serving $dir on http://localhost:$port"
+  python3 -m http.server "$port" --directory "$dir"
+}
+
+# weather: Get weather info
+weather() {
+  local location="${1:-Dhaka}"
+  curl -s "wttr.in/${location}?format=v2" 2>/dev/null || \
+    curl -s "wttr.in/${location}" 2>/dev/null || \
+    echo "Could not fetch weather"
+}
+
+# httping: HTTP check
+httping() {
+  [[ -z "$1" ]] && { echo "Usage: httping <url>"; return 1; }
+  curl -o /dev/null -s -w \
+    "Status: %{http_code}\nTime: %{time_total}s\nSize: %{size_download} bytes\n" "$1"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# GIT
+# ══════════════════════════════════════════════════════════════════
+
+# git-clean: Clean merged branches (safe)
+git-clean() {
+  local default="${1:-main}"
+  echo "Deleting merged branches (keeping '$default' and current)..."
+  git branch --merged "$default" \
+    | grep -v "^\*\|$default\|develop\|dev\|staging" \
+    | xargs -r git branch -d
+  echo "✓ Done. Remaining branches:"
+  git branch -a
+}
+
+# glog: Pretty interactive git log with fzf
+glog() {
+  if ! command -v fzf &>/dev/null; then
+    git log --oneline --graph --decorate --all
+    return
+  fi
+  git log --graph --color=always \
+    --format="%C(auto)%h%d %s %C(240)%ar %C(240)%an" "$@" |
+  fzf --ansi --no-sort --reverse --tiebreak=index \
+    --preview 'echo {} | grep -o "[a-f0-9]\{7\}" | head -1 | xargs git show --color=always' \
+    --bind "enter:execute(echo {} | grep -o '[a-f0-9]\{7\}' | head -1 | xargs git show --color=always | bat -l git)" \
+    --bind "ctrl-d:execute(echo {} | grep -o '[a-f0-9]\{7\}' | head -1 | xargs git diff HEAD..)"
+}
+
+# gcommit: Interactive conventional commit
+gcommit() {
+  echo "Type (feat/fix/docs/style/refactor/test/chore/perf/ci/build):"
+  read -r type
+  echo "Scope (optional, e.g. auth, api, ui — leave blank to skip):"
+  read -r scope
+  echo "Message:"
+  read -r msg
+  [[ -z "$type" || -z "$msg" ]] && { echo "Type and message are required"; return 1; }
+  if [[ -n "$scope" ]]; then
+    git commit -m "${type}(${scope}): ${msg}"
+  else
+    git commit -m "${type}: ${msg}"
+  fi
+}
+
+# ══════════════════════════════════════════════════════════════════
+# DEVELOPMENT
+# ══════════════════════════════════════════════════════════════════
+
+# json: Pretty print JSON
+json() {
+  if [[ -p /dev/stdin ]]; then
+    python3 -m json.tool | bat -l json --paging=never
+  elif [[ -n "$1" ]]; then
+    cat "$1" | python3 -m json.tool | bat -l json --paging=never
+  else
+    echo "Usage: json <file> OR pipe JSON to json"
+  fi
+}
+
+# jqf: Interactive jq filter with fzf
+jqf() {
+  [[ -z "$1" ]] && { echo "Usage: jqf <file.json>"; return 1; }
+  echo "." | fzf --disabled --print-query \
+    --preview "cat $1 | jq {q}" | tail -1 | xargs -I{} sh -c "cat '$1' | jq '{}'"
+}
+
+# envdump: Print env vars sorted
+envdump() {
+  env | sort | bat -l dotenv --paging=auto
+}
+
+# port-check: Check if a port is open on a remote host
+port-check() {
+  [[ $# -lt 2 ]] && { echo "Usage: port-check <host> <port>"; return 1; }
+  timeout 2 bash -c "echo > /dev/tcp/$1/$2" 2>/dev/null && \
+    echo "✓ $1:$2 is OPEN" || echo "✗ $1:$2 is CLOSED"
+}
+
+# mkenv: Create a .env file from .env.example
+mkenv() {
+  local src="${1:-.env.example}"
+  local dst="${2:-.env}"
+  [[ ! -f "$src" ]] && { echo "No $src found"; return 1; }
+  cp "$src" "$dst" && echo "✓ Created $dst from $src"
+  $EDITOR "$dst"
+}
+
+# nv: Node version switcher via nvm
+nv() {
+  [[ -z "$1" ]] && { nvm list; return; }
+  nvm use "$1"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# SECURITY / HACKING HELPERS
+# ══════════════════════════════════════════════════════════════════
+
+# scannet: Quick nmap scan
+scannet() {
+  [[ -z "$1" ]] && { echo "Usage: scannet <target>"; return 1; }
+  echo "Running quick scan on $1..."
+  sudo nmap -sV -sC -oN "scan_$1_$(date +%Y%m%d_%H%M%S).txt" "$1"
+}
+
+# portscan: Fast port scan
+portscan() {
+  [[ -z "$1" ]] && { echo "Usage: portscan <target>"; return 1; }
+  sudo nmap -p- --min-rate 5000 -oN "ports_$1_$(date +%Y%m%d).txt" "$1"
+}
+
+# hashcrack: Identify hash type
+hashtype() {
+  [[ -z "$1" ]] && { echo "Usage: hashtype <hash>"; return 1; }
+  echo "Hash: $1 (${#1} chars)"
+  case "${#1}" in
+    32)  echo "Likely: MD5" ;;
+    40)  echo "Likely: SHA1" ;;
+    56)  echo "Likely: SHA224" ;;
+    64)  echo "Likely: SHA256" ;;
+    96)  echo "Likely: SHA384" ;;
+    128) echo "Likely: SHA512" ;;
+    *)   echo "Unknown or uncommon length" ;;
+  esac
+}
+
+# gen-wordlist: Generate password wordlist from a word
+gen-wordlist() {
+  [[ -z "$1" ]] && { echo "Usage: gen-wordlist <word>"; return 1; }
+  python3 -c "
+word = '$1'
+print(word)
+print(word.capitalize())
+print(word.upper())
+print(word + '123')
+print(word.capitalize() + '123')
+print(word + '2024')
+print(word + '2025')
+print(word + '!')
+print(word.capitalize() + '!')
+print(word + '@123')
+"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# SYSTEM
+# ══════════════════════════════════════════════════════════════════
+
+# sysinfo: Quick system overview
+sysinfo() {
+  echo ""
+  printf "\033[1;32m  System Overview\033[0m\n"
+  printf "\033[38;5;240m──────────────────────────────────────\033[0m\n"
+  printf "\033[1;36mOS:\033[0m       %s\n"  "$(cat /etc/os-release | grep ^PRETTY_NAME | cut -d'"' -f2)"
+  printf "\033[1;36mKernel:\033[0m   %s\n"  "$(uname -r)"
+  printf "\033[1;36mUptime:\033[0m   %s\n"  "$(uptime -p)"
+  printf "\033[1;36mCPU:\033[0m      %s\n"  "$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs)"
+  printf "\033[1;36mMemory:\033[0m   %s / %s\n" \
+    "$(free -h | awk '/^Mem/ {print $3}')" \
+    "$(free -h | awk '/^Mem/ {print $2}')"
+  printf "\033[1;36mDisk:\033[0m     %s\n"  "$(df -h / | awk 'NR==2 {print $3 " used / " $2 " total (" $5 " full)"}')"
+  printf "\033[1;36mIP:\033[0m       %s\n"  "$(hostname -I | awk '{print $1}')"
+  echo ""
+}
+
+# cl: cd into a directory and list
+cl() {
+  dir="${1:-.}"
+  cd "$dir" && ll
+}
+
+# sizeof: Show sizes of items in directory
+sizeof() {
+  du -sh "${1:-.}"/* 2>/dev/null | sort -h
+}
+
+# please: Repeat last command with sudo
+please() {
+  sudo "$SHELL" -c "$(fc -ln -1)"
+}
+
+# countdown: Countdown timer
+countdown() {
+  local n="${1:-10}"
+  for ((i=n; i>=0; i--)); do
+    printf "\r  %02d " "$i"
+    sleep 1
+  done
+  printf "\r  Done!   \n"
+  command -v paplay &>/dev/null && paplay /usr/share/sounds/freedesktop/stereo/complete.oga 2>/dev/null
+}
+
+# mkscript: Create an executable shell script
+mkscript() {
+  [[ -z "$1" ]] && { echo "Usage: mkscript <name.sh>"; return 1; }
+  cat > "$1" << 'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Script: $1
+# Author: tarikul3639
+# Date: $(date +%Y-%m-%d)
+
+main() {
+  echo "Hello from $1"
+}
+
+main "$@"
+EOF
+  chmod +x "$1"
+  echo "✓ Created executable script: $1"
+  $EDITOR "$1"
+}

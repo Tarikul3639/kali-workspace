@@ -1,0 +1,180 @@
+[user]
+	name = Tarikul Islam
+	email = tarikul3639@gmail.com
+	signingkey =
+
+[core]
+	editor = nvim
+	autocrlf = input
+	safecrlf = warn
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	excludesfile = ~/.gitignore_global
+	pager = delta
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	default = current
+	autoSetupRemote = true
+	followTags = true
+
+[fetch]
+	prune = true
+	prunetags = true
+	all = true
+
+[merge]
+	ff = only
+	log = true
+	conflictstyle = diff3
+
+[rebase]
+	autosquash = true
+	autostash = true
+
+[diff]
+	tool = delta
+	algorithm = histogram
+	colorMoved = default
+	mnemonicprefix = true
+
+[credential]
+	helper = store
+
+# ── Interactive Diffing with delta ────────────────────────────────
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	light = false
+	line-numbers = true
+	side-by-side = true
+	syntax-theme = TwoDark
+	plus-style = "syntax #1a3a2a"
+	minus-style = "syntax #3a1a1a"
+	line-numbers-left-style = "#5c6370"
+	line-numbers-right-style = "#5c6370"
+	line-numbers-minus-style = "#ff5370"
+	line-numbers-plus-style = "#c3e88d"
+
+# ── Color Output ──────────────────────────────────────────────────
+[color]
+	ui = auto
+	branch = auto
+	diff = auto
+	status = auto
+
+[color "branch"]
+	current = cyan bold
+	local = green
+	remote = yellow
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+
+[color "status"]
+	added = green bold
+	changed = yellow bold
+	untracked = cyan bold
+
+# ── Aliases ───────────────────────────────────────────────────────
+[alias]
+	# Status
+	s = status -sb
+	st = status
+
+	# Add
+	a = add
+	aa = add --all
+	ap = add --patch
+
+	# Commit
+	c = commit
+	cm = commit -m
+	ca = commit --amend
+	can = commit --amend --no-edit
+	wip = !git add -A && git commit -m "wip: work in progress"
+	
+	# Push / Pull
+	p = push
+	pf = push --force-with-lease
+	pl = pull
+	plr = pull --rebase
+
+	# Branch
+	b = branch
+	ba = branch -a
+	bd = branch -d
+	bD = branch -D
+	co = checkout
+	cob = checkout -b
+
+	# Log
+	l = log --oneline --graph --decorate --all
+	ll = log --graph --pretty=format:'%Cred%h%Creset — %C(bold blue)%an%Creset %Cgreen(%ar)%Creset %s %C(yellow)%d%Creset' --abbrev-commit
+	lf = log --follow --oneline
+	ld = log --oneline --decorate --graph --date=short --format='%C(cyan)%h%Creset %Cgreen%ad%Creset | %s%d [%an]'
+
+	# Diff
+	d = diff
+	ds = diff --staged
+	dc = diff --cached
+
+	# Stash
+	ss = stash
+	sp = stash pop
+	sl = stash list
+	sd = stash drop
+
+	# Undo
+	undo = reset HEAD~1 --mixed
+	unstage = restore --staged
+	discard = checkout --
+
+	# Remote
+	rv = remote -v
+	ra = remote add
+	rr = remote remove
+
+	# Utility
+	tags = tag --sort=-creatordate
+	branches = branch --sort=-committerdate --format='%(HEAD) %(color:cyan)%(refname:short)%(color:reset) - %(color:bold green)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) %(color:bold yellow)(%(committerdate:relative))%(color:reset)'
+	contributors = shortlog --summary --numbered --email
+	aliases = config --get-regexp '^alias\\.'
+	
+	# Conventional commit shortcuts
+	feat = "!f() { git commit -m \"feat: $1\"; }; f"
+	fix = "!f() { git commit -m \"fix: $1\"; }; f"
+	docs = "!f() { git commit -m \"docs: $1\"; }; f"
+	chore = "!f() { git commit -m \"chore: $1\"; }; f"
+	refactor = "!f() { git commit -m \"refactor: $1\"; }; f"
+	perf = "!f() { git commit -m \"perf: $1\"; }; f"
+	test = "!f() { git commit -m \"test: $1\"; }; f"
+	ci = "!f() { git commit -m \"ci: $1\"; }; f"
+	build = "!f() { git commit -m \"build: $1\"; }; f"
+
+	# Flow
+	sync = !git fetch --all --prune && git pull --rebase
+	fresh = !git fetch --all --prune && git checkout main && git pull
+	gone = !git fetch -p && git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -d
+
+[url "git@github.com:"]
+	insteadOf = gh:
+
+[url "git@github.com:tarikul3639/"]
+	insteadOf = my:
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
