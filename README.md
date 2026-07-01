@@ -183,6 +183,11 @@ dconf write "${BASE}/background-transparency-percent" "10"
 exec zsh
 ```
 
+### If face npm or node not found, run:
+```bash
+nvm use 24 # 24 is the latest LTS version as of 2024-06
+```
+
 ---
 
 ## 🎨 Prompt Preview
